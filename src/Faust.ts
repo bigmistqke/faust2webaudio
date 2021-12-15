@@ -224,7 +224,7 @@ export class Faust {
     private async compileCodes(code: string, argv: string[], internalMemory: boolean): Promise<TCompiledDsp> {
         // Code memory type and argv in the SHAKey to differentiate compilation flags and Monophonic and Polyphonic factories
         const strArgv = argv.join("");
-        const shaKey = sha256(/* this.expandCode(code, argv) */code + (internalMemory ? "internal_memory" : "external_memory") + strArgv);
+        const shaKey = sha256(this.expandCode(code, argv) + (internalMemory ? "internal_memory" : "external_memory") + strArgv);
         const compiledDsp = this.dspTable[shaKey];
         if (compiledDsp) {
             this.log("Existing library : " + shaKey);
@@ -241,7 +241,7 @@ process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
         let effectCompiledCode: TCompiledCode;
         try {
             effectCompiledCode = this.compileCode(shaKey + "_", effectCode, argv, internalMemory);
-        } catch (e) {} // eslint-disable-line no-empty
+        } catch (e) { } // eslint-disable-line no-empty
         const compiledCodes = { dsp: dspCompiledCode, effect: effectCompiledCode };
         return this.compileDsp(compiledCodes, shaKey);
     }
@@ -406,11 +406,11 @@ const findPath = (${utils.findPathClosure.toString()})();
 const createWasmImport = ${utils.createWasmImport.toString()};
 const createWasmMemory = ${utils.createWasmMemory.toString()};
 const faustData = ${JSON.stringify({
-        id,
-        voices,
-        dspMeta: compiledDsp.dspMeta,
-        effectMeta: compiledDsp.effectMeta
-    })};
+                id,
+                voices,
+                dspMeta: compiledDsp.dspMeta,
+                effectMeta: compiledDsp.effectMeta
+            })};
 (${FaustAudioWorkletProcessorWrapper.toString()})();
 `;
             const url = window.URL.createObjectURL(new Blob([strProcessor], { type: "text/javascript" }));
