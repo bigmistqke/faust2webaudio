@@ -51,21 +51,22 @@ var __async = (__this, __arguments, generator) => {
     var fulfilled = (value) => {
       try {
         step(generator.next(value));
-      } catch (e) {
-        reject(e);
+      } catch (e2) {
+        reject(e2);
       }
     };
     var rejected = (value) => {
       try {
         step(generator.throw(value));
-      } catch (e) {
-        reject(e);
+      } catch (e2) {
+        reject(e2);
       }
     };
     var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
+e;
 
 
 
@@ -191,16 +192,16 @@ class Faust {
       }
       this.libFaust._free($argv);
       return { ui8Code, code, helpersCode };
-    } catch (e) {
+    } catch (e2) {
       const errorMsg = this.libFaust.UTF8ToString(this.getErrorAfterException());
       this.cleanupAfterException();
-      throw errorMsg ? new Error(errorMsg) : e;
+      throw errorMsg ? new Error(errorMsg) : e2;
     }
   }
   compileCodes(code, argv, internalMemory) {
     return __async(this, null, function* () {
       const strArgv = argv.join("");
-      const shaKey = (0,js_sha256__WEBPACK_IMPORTED_MODULE_0__.sha256)(code + (internalMemory ? "internal_memory" : "external_memory") + strArgv);
+      const shaKey = (0,js_sha256__WEBPACK_IMPORTED_MODULE_0__.sha256)(this.expandCode(code, argv) + (internalMemory ? "internal_memory" : "external_memory") + strArgv);
       const compiledDsp = this.dspTable[shaKey];
       if (compiledDsp) {
         this.log("Existing library : " + shaKey);
@@ -215,7 +216,7 @@ process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
       let effectCompiledCode;
       try {
         effectCompiledCode = this.compileCode(shaKey + "_", effectCode, argv, internalMemory);
-      } catch (e) {
+      } catch (e2) {
       }
       const compiledCodes = { dsp: dspCompiledCode, effect: effectCompiledCode };
       return this.compileDsp(compiledCodes, shaKey);
@@ -260,10 +261,10 @@ process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
       }
       this.libFaust._free($argv);
       return expandedCode;
-    } catch (e) {
+    } catch (e2) {
       const errorMsg = this.libFaust.UTF8ToString(this.getErrorAfterException());
       this.cleanupAfterException();
-      throw errorMsg ? new Error(errorMsg) : e;
+      throw errorMsg ? new Error(errorMsg) : e2;
     }
   }
   compileDsp(codes, shaKey) {
@@ -281,9 +282,9 @@ process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
         const json = codes.dsp.helpersCode.match(/getJSON\w+?\(\)[\s\n]*{[\s\n]*return[\s\n]*'(\{.+?)';}/)[1].replace(/\\'/g, "'");
         const meta = JSON.parse(json);
         compiledDsp.dspMeta = meta;
-      } catch (e) {
-        this.error("Error in JSON.parse: " + e.message);
-        throw e;
+      } catch (e2) {
+        this.error("Error in JSON.parse: " + e2.message);
+        throw e2;
       }
       this.dspTable[shaKey] = compiledDsp;
       if (!codes.effect)
@@ -295,11 +296,11 @@ process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;`;
           const json = codes.effect.helpersCode.match(/getJSON\w+?\(\)[\s\n]*{[\s\n]*return[\s\n]*'(\{.+?)';}/)[1].replace(/\\'/g, "'");
           const meta = JSON.parse(json);
           compiledDsp.effectMeta = meta;
-        } catch (e) {
-          this.error("Error in JSON.parse: " + e.message);
-          throw e;
+        } catch (e2) {
+          this.error("Error in JSON.parse: " + e2.message);
+          throw e2;
         }
-      } catch (e) {
+      } catch (e2) {
         return compiledDsp;
       }
       return compiledDsp;
@@ -412,10 +413,10 @@ const faustData = ${JSON.stringify({
         this.libFaust._free(argvBuffer$[i]);
       }
       this.libFaust._free($argv);
-    } catch (e) {
+    } catch (e2) {
       const errorMsg = this.libFaust.UTF8ToString(this.getErrorAfterException());
       this.cleanupAfterException();
-      throw errorMsg ? new Error(errorMsg) : e;
+      throw errorMsg ? new Error(errorMsg) : e2;
     }
     return this.libFaust.FS.readFile("FaustDSP-svg/process.svg", { encoding: "utf8" });
   }
