@@ -2,7 +2,7 @@
 
 The repository is now maintained by [Grame-CNCM](https://github.com/grame-cncm/faust2webaudio). Please check that fork for the latest version.
 
-Produce a ScriptProcessorNode or an AudioWorkletNode with Faust .dsp code using the libfaust WebAssembly compiler.
+Produces a ScriptProcessorNode or an AudioWorkletNode with Faust .dsp code using the libfaust WebAssembly compiler.
 
 Supported Platforms: Chrome >= 49, Firefox >= 45, Edge >= 13, Safari >= 10, iOS >= 10, Android >= 68
 
@@ -33,11 +33,16 @@ Example:
 
 ```JavaScript
 import { Faust } from "faust2webaudio";
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const code = `
+
+// Initialise Web Audio context
+const audioContext = new window.AudioContext();
+
+// Define Faust programs to run
+const monoCode = `
 import("stdfaust.lib");
 process = ba.pulsen(1, 10000) : pm.djembe(60, 0.3, 0.4, 1) <: dm.freeverb_demo;`;
-const polycode = `
+
+const polyCode = `
 import("stdfaust.lib");
 process = ba.pulsen(1, 10000) : pm.djembe(ba.hz2midikey(freq), 0.3, 0.4, 1) * gate * gain with {
     freq = hslider("freq", 440, 40, 8000, 1);
@@ -45,13 +50,37 @@ process = ba.pulsen(1, 10000) : pm.djembe(ba.hz2midikey(freq), 0.3, 0.4, 1) * ga
     gate = button("gate");
 };
 effect = dm.freeverb_demo;`;
-new Faust2WebAudio.Faust().ready.then((faust) => {
-    faust.getNode(polycode, { audioCtx, useWorklet: window.AudioWorklet ? true : false, voices: 4, args: { "-I": "https://faust.grame.fr/tools/editor/libraries/" } })
-    .then(node => node.connect(audioCtx.destination));
-    faust.getNode(code, { audioCtx, useWorklet: window.AudioWorklet ? true : false, args: { "-I": "https://faust.grame.fr/tools/editor/libraries/" } })
-    .then(node => node.connect(audioCtx.destination));
+
+// Set up Faust compiler
+const faust = new Faust({
+    // Update the below paths with the location of the necessary files!
+    // They can be found inside the Node module, under the 'dist' directory.
+    wasmLocation: "path/to/libfaust-wasm.wasm",
+    dataLocation: "path/to/libfaust-wasm.data"
 });
+
+// Ensure that the compiler is ready before continuing
+await faust.ready;
+
+// Compile monophonic code and connect the generated Web Audio node to the output.
+const monoNode = await faust.getNode(polyCode, {
+    audioCtx: audioContext,
+    useWorklet: window.AudioWorklet ? true : false,
+    args: { "-I": "libraries/" }
+});
+monoNode.connect(audioContext.destination);
+
+// Compile polyphonic code and connect the generated Web Audio node to the output.
+const polyNode = await faust.getNode(polyCode, {
+    audioCtx: audioContext,
+    useWorklet: window.AudioWorklet ? true : false,
+    voices: 4,
+    args: { "-I": "libraries/" }
+});
+polyNode.connect(audioContext.destination);
 ```
+
+Windows users: Ensure that your copy of `libfaust-wasm.data` is terminated with LF line endings and not CRLF! If you have problems, try replacing it with a copy downloaded directly from [this repository](blob/master/dist/libfaust-wasm.data).
 
 ## Building
 
