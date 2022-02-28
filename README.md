@@ -53,7 +53,7 @@ effect = dm.freeverb_demo;`;
 
 // Set up Faust compiler
 const faust = new Faust({
-    // Update the below paths with the location of the necessary files!
+    // Update the below paths with the locations of the necessary files!
     // They can be found inside the Node module, under the 'dist' directory.
     wasmLocation: "path/to/libfaust-wasm.wasm",
     dataLocation: "path/to/libfaust-wasm.data"
