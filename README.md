@@ -80,7 +80,7 @@ const polyNode = await faust.getNode(polyCode, {
 polyNode.connect(audioContext.destination);
 ```
 
-Windows users: Ensure that your copy of `libfaust-wasm.data` is terminated with LF line endings and not CRLF! If you have problems, try replacing it with a copy downloaded directly from [this repository](blob/master/dist/libfaust-wasm.data).
+Windows users: Ensure that your copy of `libfaust-wasm.data` is terminated with LF line endings and not CRLF! If you have problems, try replacing it with a copy downloaded directly from [this repository](dist/libfaust-wasm.data).
 
 ## Building
 
