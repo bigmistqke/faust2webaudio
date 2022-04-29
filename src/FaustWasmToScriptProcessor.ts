@@ -93,8 +93,10 @@ export class FaustWasmToScriptProcessor {
             node.effectMeta = compiledDsp.effectMeta;
             node.$mixing = null;
             node.fFreqLabel$ = [];
+            node.fKeyLabel$ = [];
             node.fGateLabel$ = [];
             node.fGainLabel$ = [];
+            node.fVelLabel$ = [];
             node.fDate = 0;
 
             node.mixer = mixerInstance.exports as FaustWebAssemblyMixerExports;
@@ -227,8 +229,10 @@ export class FaustWasmToScriptProcessor {
                 const voice = node.getFreeVoice();
                 this.faust.log("keyOn voice " + voice);
                 node.fFreqLabel$.forEach($ => node.factory.setParamValue(node.dspVoices$[voice], $, midiToFreq(pitch)));
+                node.fKeyLabel$.forEach($ => node.factory.setParamValue(node.dspVoices$[voice], $, pitch));
                 node.fGateLabel$.forEach($ => node.factory.setParamValue(node.dspVoices$[voice], $, 1));
                 node.fGainLabel$.forEach($ => node.factory.setParamValue(node.dspVoices$[voice], $, velocity / 127));
+                node.fVelLabel$.forEach($ => node.factory.setParamValue(node.dspVoices$[voice], $, velocity));
                 node.dspVoicesState[voice] = pitch;
             };
             node.keyOff = (channel, pitch, velocity) => { // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -348,7 +352,9 @@ export class FaustWasmToScriptProcessor {
                 node.inputsItems.forEach((item) => {
                     if (item.endsWith("/gate")) node.fGateLabel$.push(node.pathTable$[item]);
                     else if (item.endsWith("/freq")) node.fFreqLabel$.push(node.pathTable$[item]);
+                    else if (item.endsWith("/key")) node.fKeyLabel$.push(node.pathTable$[item]);
                     else if (item.endsWith("/gain")) node.fGainLabel$.push(node.pathTable$[item]);
+                    else if (item.endsWith("/vel") || item.endsWith("/velocity")) node.fVelLabel$.push(node.pathTable$[item]);
                 });
                 // Init DSP voices
                 node.dspVoices$.forEach($voice => node.factory.init($voice, audioCtx.sampleRate));

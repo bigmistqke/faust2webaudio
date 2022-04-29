@@ -34,7 +34,6 @@ type FaustData = {
     effectMeta?: TDspMeta;
 };
 declare const faustData: FaustData;
-
 declare const remap: (v: number, mn0: number, mx0: number, mn1: number, mx1: number) => number;
 declare const midiToFreq: (v: number) => number;
 declare const findPath: (o: any, p: string) => boolean;
@@ -71,11 +70,23 @@ export const FaustAudioWorkletProcessorWrapper = () => {
             } else if (item.type === "hbargraph" || item.type === "vbargraph") {
                 // Nothing
             } else if (item.type === "vslider" || item.type === "hslider" || item.type === "nentry") {
-                if (!faustData.voices || (!item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain"))) {
+                if (!faustData.voices ||
+                        (!item.address.endsWith("/gate") &&
+                         !item.address.endsWith("/freq") &&
+                         !item.address.endsWith("/key") &&
+                         !item.address.endsWith("/vel") &&
+                         !item.address.endsWith("/velocity") &&
+                         !item.address.endsWith("/gain"))) {
                     obj.push({ name: item.address, defaultValue: item.init || 0, minValue: item.min || 0, maxValue: item.max || 0 });
                 }
             } else if (item.type === "button" || item.type === "checkbox") {
-                if (!faustData.voices || (!item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain"))) {
+                if (!faustData.voices ||
+                        (!item.address.endsWith("/gate") &&
+                         !item.address.endsWith("/freq") &&
+                         !item.address.endsWith("/key") &&
+                         !item.address.endsWith("/vel") &&
+                         !item.address.endsWith("/velocity") &&
+                         !item.address.endsWith("/gain"))) {
                     obj.push({ name: item.address, defaultValue: item.init || 0, minValue: 0, maxValue: 1 });
                 }
             }
@@ -151,8 +162,10 @@ export const FaustAudioWorkletProcessorWrapper = () => {
         $effect?: number;
         $mixing?: number;
         fFreqLabel$?: number[];
+        fKeyLabel$?: number[];
         fGateLabel$?: number[];
         fGainLabel$?: number[];
+        fVelLabel$?: number[];
         fDate?: number;
         $$audioHeapMixing?: number;
         $audioHeapMixing?: number;
@@ -274,8 +287,10 @@ export const FaustAudioWorkletProcessorWrapper = () => {
                 this.effectMeta = FaustConst.effectMeta;
                 this.$mixing = null;
                 this.fFreqLabel$ = [];
+                this.fKeyLabel$ = [];
                 this.fGateLabel$ = [];
                 this.fGainLabel$ = [];
+                this.fVelLabel$ = [];
                 this.fDate = 0;
 
                 this.mixer = this.mixerInstance.exports as FaustWebAssemblyMixerExports;
@@ -392,7 +407,9 @@ export const FaustAudioWorkletProcessorWrapper = () => {
                 this.inputsItems.forEach((item) => {
                     if (item.endsWith("/gate")) this.fGateLabel$.push(this.pathTable$[item]);
                     else if (item.endsWith("/freq")) this.fFreqLabel$.push(this.pathTable$[item]);
+                    else if (item.endsWith("/key")) this.fKeyLabel$.push(this.pathTable$[item]);
                     else if (item.endsWith("/gain")) this.fGainLabel$.push(this.pathTable$[item]);
+                    else if (item.endsWith("/vel") || item.endsWith("/velocity")) this.fVelLabel$.push(this.pathTable$[item]);
                 });
                 // Init DSP voices
                 this.dspVoices$.forEach($voice => this.factory.init($voice, sampleRate));
@@ -465,8 +482,10 @@ export const FaustAudioWorkletProcessorWrapper = () => {
             const voice = this.getFreeVoice();
             // console.log("keyOn voice " + voice);
             this.fFreqLabel$.forEach($ => this.factory.setParamValue(this.dspVoices$[voice], $, midiToFreq(pitch)));
+            this.fKeyLabel$.forEach($ => this.factory.setParamValue(this.dspVoices$[voice], $, pitch));
             this.fGateLabel$.forEach($ => this.factory.setParamValue(this.dspVoices$[voice], $, 1));
             this.fGainLabel$.forEach($ => this.factory.setParamValue(this.dspVoices$[voice], $, velocity / 127));
+            this.fVelLabel$.forEach($ => this.factory.setParamValue(this.dspVoices$[voice], $, velocity));
             this.dspVoicesState[voice] = pitch;
         }
         keyOff(channel: number, pitch: number, velocity: number) {
