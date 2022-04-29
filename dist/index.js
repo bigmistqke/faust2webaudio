@@ -7,7 +7,7 @@
 		exports["Faust2WebAudio"] = factory();
 	else
 		root["Faust2WebAudio"] = factory();
-})(self, function() {
+})(self, () => {
 return /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
@@ -775,8 +775,10 @@ const FaustAudioWorkletProcessorWrapper = () => {
         this.effectMeta = FaustConst.effectMeta;
         this.$mixing = null;
         this.fFreqLabel$ = [];
+        this.fKeyLabel$ = [];
         this.fGateLabel$ = [];
         this.fGainLabel$ = [];
+        this.fVelLabel$ = [];
         this.fDate = 0;
         this.mixer = this.mixerInstance.exports;
         this.effect = this.effectInstance ? this.effectInstance.exports : null;
@@ -821,11 +823,11 @@ const FaustAudioWorkletProcessorWrapper = () => {
         _FaustAudioWorkletProcessor.parseItems(item.items, obj, callback);
       } else if (item.type === "hbargraph" || item.type === "vbargraph") {
       } else if (item.type === "vslider" || item.type === "hslider" || item.type === "nentry") {
-        if (!faustData.voices || !item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain")) {
+        if (!faustData.voices || !item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/key") && !item.address.endsWith("/vel") && !item.address.endsWith("/velocity") && !item.address.endsWith("/gain")) {
           obj.push({ name: item.address, defaultValue: item.init || 0, minValue: item.min || 0, maxValue: item.max || 0 });
         }
       } else if (item.type === "button" || item.type === "checkbox") {
-        if (!faustData.voices || !item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/gain")) {
+        if (!faustData.voices || !item.address.endsWith("/gate") && !item.address.endsWith("/freq") && !item.address.endsWith("/key") && !item.address.endsWith("/vel") && !item.address.endsWith("/velocity") && !item.address.endsWith("/gain")) {
           obj.push({ name: item.address, defaultValue: item.init || 0, minValue: 0, maxValue: 1 });
         }
       }
@@ -947,8 +949,12 @@ const FaustAudioWorkletProcessorWrapper = () => {
             this.fGateLabel$.push(this.pathTable$[item]);
           else if (item.endsWith("/freq"))
             this.fFreqLabel$.push(this.pathTable$[item]);
+          else if (item.endsWith("/key"))
+            this.fKeyLabel$.push(this.pathTable$[item]);
           else if (item.endsWith("/gain"))
             this.fGainLabel$.push(this.pathTable$[item]);
+          else if (item.endsWith("/vel") || item.endsWith("/velocity"))
+            this.fVelLabel$.push(this.pathTable$[item]);
         });
         this.dspVoices$.forEach(($voice) => this.factory.init($voice, sampleRate));
         if (this.effect)
@@ -1015,8 +1021,10 @@ const FaustAudioWorkletProcessorWrapper = () => {
         return;
       const voice = this.getFreeVoice();
       this.fFreqLabel$.forEach(($) => this.factory.setParamValue(this.dspVoices$[voice], $, midiToFreq(pitch)));
+      this.fKeyLabel$.forEach(($) => this.factory.setParamValue(this.dspVoices$[voice], $, pitch));
       this.fGateLabel$.forEach(($) => this.factory.setParamValue(this.dspVoices$[voice], $, 1));
       this.fGainLabel$.forEach(($) => this.factory.setParamValue(this.dspVoices$[voice], $, velocity / 127));
+      this.fVelLabel$.forEach(($) => this.factory.setParamValue(this.dspVoices$[voice], $, velocity));
       this.dspVoicesState[voice] = pitch;
     }
     keyOff(channel, pitch, velocity) {
@@ -1442,8 +1450,10 @@ class FaustWasmToScriptProcessor {
       node.effectMeta = compiledDsp.effectMeta;
       node.$mixing = null;
       node.fFreqLabel$ = [];
+      node.fKeyLabel$ = [];
       node.fGateLabel$ = [];
       node.fGainLabel$ = [];
+      node.fVelLabel$ = [];
       node.fDate = 0;
       node.mixer = mixerInstance.exports;
       node.effect = effectInstance ? effectInstance.exports : null;
@@ -1561,8 +1571,10 @@ class FaustWasmToScriptProcessor {
         const voice = node.getFreeVoice();
         this.faust.log("keyOn voice " + voice);
         node.fFreqLabel$.forEach(($) => node.factory.setParamValue(node.dspVoices$[voice], $, (0,_utils__WEBPACK_IMPORTED_MODULE_0__.midiToFreq)(pitch)));
+        node.fKeyLabel$.forEach(($) => node.factory.setParamValue(node.dspVoices$[voice], $, pitch));
         node.fGateLabel$.forEach(($) => node.factory.setParamValue(node.dspVoices$[voice], $, 1));
         node.fGainLabel$.forEach(($) => node.factory.setParamValue(node.dspVoices$[voice], $, velocity / 127));
+        node.fVelLabel$.forEach(($) => node.factory.setParamValue(node.dspVoices$[voice], $, velocity));
         node.dspVoicesState[voice] = pitch;
       };
       node.keyOff = (channel, pitch, velocity) => {
@@ -1694,8 +1706,12 @@ class FaustWasmToScriptProcessor {
             node.fGateLabel$.push(node.pathTable$[item]);
           else if (item.endsWith("/freq"))
             node.fFreqLabel$.push(node.pathTable$[item]);
+          else if (item.endsWith("/key"))
+            node.fKeyLabel$.push(node.pathTable$[item]);
           else if (item.endsWith("/gain"))
             node.fGainLabel$.push(node.pathTable$[item]);
+          else if (item.endsWith("/vel") || item.endsWith("/velocity"))
+            node.fVelLabel$.push(node.pathTable$[item]);
         });
         node.dspVoices$.forEach(($voice) => node.factory.init($voice, audioCtx.sampleRate));
         if (node.effect)
